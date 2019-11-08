@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 
-import contextlib
 import datetime as dt
-import itertools
-import os.path
 from functools import partial
 from pathlib import Path
 
@@ -26,7 +23,7 @@ config['base_path'] = Path(config['base_path'])  # just in case it's a str
 def is_beneath(base_path, path):
 	try:
 		resolved = (base_path / path).resolve()
-	except RuntimeError:
+	except RuntimeError:  # symlink recursion
 		return False
 
 	return base_path in resolved.parents and resolved
@@ -43,6 +40,7 @@ class SafePathConverter(PathConverter):
 		if not p.is_dir():
 			abort(400)
 		return p
+
 	def to_url(self, path):
 		return super().to_url(str(path))
 
