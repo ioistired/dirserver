@@ -15,9 +15,13 @@ import utils
 
 app = Flask(__name__, static_folder=None)
 app.jinja_env.add_extension('jinja2.ext.loopcontrols')
+app.errorhandler(FileNotFoundError)(lambda e: app.handle_http_exception(werkzeug.exceptions.NotFound()))
+app.errorhandler(PermissionError)(lambda e: app.handle_http_exception(werkzeug.exceptions.Forbidden()))
 
 with open('config.py') as f:
 	config = eval(f.read(), {'Path': Path})
+
+config['base_path'] = Path(config['base_path'])  # just in case it's a str
 
 def is_beneath(base_path, path):
 	try:
@@ -111,9 +115,6 @@ def index_dir(path):
 		sort=sort_key,
 		order=order,
 		breadcrumbs=breadcrumbs(path))
-
-app.errorhandler(FileNotFoundError)(lambda e: app.handle_http_exception(werkzeug.exceptions.NotFound()))
-app.errorhandler(PermissionError)(lambda e: app.handle_http_exception(werkzeug.exceptions.Forbidden()))
 
 if __name__ == '__main__':
 	app.run(use_reloader=True)
