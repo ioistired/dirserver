@@ -14,16 +14,18 @@ with open('config.py') as f:
 
 def is_beneath(base_path, path):
 	try:
-		return base_path in (base_path / path).resolve().parents
+		resolved = (base_path / path).resolve()
 	except (RuntimeError, FileNotFoundError):
 		return False
+
+	return base_path in resolved.parents and resolved
 
 is_in_base_path = partial(is_beneath, config['base_path'])
 
 class SafePathConverter(PathConverter):
 	def to_python(self, value):
-		p = Path(value)
-		if not is_in_base_path(p):
+		p = is_in_base_path(Path(value))
+		if not p:
 			abort(400)
 		return p
 	def to_url(self, path):
@@ -34,6 +36,9 @@ app.url_map.converters['safe_path'] = SafePathConverter
 @app.route('/', defaults={'path': '/'})
 @app.route('/<safe_path:path>')
 def get_dir(path):
+	# no hidden
+	if any(part.startswith('.') for part in path.parts):
+		abort(403)
 	return str(path)
 
 if __name__ == '__main__':
