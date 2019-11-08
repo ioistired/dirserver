@@ -85,7 +85,7 @@ def index_dir(path):
 	num_files = num_dirs = 0
 	paths = []
 	for p in path.iterdir():
-		if p.name.startswith('.'):
+		if p.name.startswith('.') and config.get('exclude_hidden', True):
 			continue
 		p = DisplayPath(p)
 		if p.is_dir:
