@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block title %}Index of {{ path }}{% endblock %}
+{% block content %}
+	<table>
+		<thead><tr>
+			<th>Name
+			<th>Size
+			<th>Last modified
+		<tbody>
+			{% for file in files %}<tr>
+				<td><a href="{{ file.name|urlencode }}">{{ file.name }}</a>
+				{% if file.name == '../' %}{% continue %}{% endif %}
+				<td>{{ file.size }}
+				<td>{{ file.modified }}
+			{% endfor %}
+	</table>
+{% endblock %}
