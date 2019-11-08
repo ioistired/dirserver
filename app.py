@@ -24,7 +24,7 @@ with open('config.py') as f:
 def is_beneath(base_path, path):
 	try:
 		resolved = (base_path / path).resolve()
-	except (RuntimeError, FileNotFoundError):
+	except RuntimeError:
 		return False
 
 	return base_path in resolved.parents and resolved
@@ -36,6 +36,8 @@ class SafePathConverter(PathConverter):
 		p = is_in_base_path(Path(value))
 		if not p:
 			abort(400)
+		if not p.exists():
+			abort(404)
 		if not p.is_dir():
 			abort(400)
 		return p
