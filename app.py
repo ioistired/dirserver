@@ -7,7 +7,7 @@ from werkzeug.routing import PathConverter
 
 from flask import Flask, abort
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder=None)
 
 with open('config.py') as f:
 	config = eval(f.read(), {'Path': Path})
