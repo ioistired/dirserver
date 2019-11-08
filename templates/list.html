@@ -9,7 +9,11 @@
 		<tbody>
 			{% for file in files %}<tr>
 				<td><a href="{{ file.name|urlencode }}">{{ file.name }}</a>
-				{% if file.name == '../' %}{% continue %}{% endif %}
+				{% if file.name == '../' %}
+					<td>
+					<td>
+					{% continue %}
+				{% endif %}
 				<td>{{ file.size }}
 				<td>{{ file.modified }}
 			{% endfor %}
