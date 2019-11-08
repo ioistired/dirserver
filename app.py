@@ -6,10 +6,11 @@ import itertools
 import os.path
 from functools import partial
 from pathlib import Path
-from werkzeug.routing import PathConverter
 
 import humanize
+import werkzeug.exceptions
 from flask import Flask, abort, render_template, request
+from werkzeug.routing import PathConverter
 
 app = Flask(__name__, static_folder=None)
 app.jinja_env.add_extension('jinja2.ext.loopcontrols')
@@ -35,8 +36,6 @@ class SafePathConverter(PathConverter):
 		p = is_in_base_path(Path(value))
 		if not p:
 			abort(400)
-		if not p.exists():
-			abort(404)
 		if not p.is_dir():
 			abort(400)
 		return p
@@ -65,12 +64,16 @@ def index_dir(path):
 	if any(part.startswith('.') for part in path.parts):
 		abort(403)
 
-	paths = path.iterdir()
+	paths = list(p for p in path.iterdir() if not p.name.startswith('.') and is_in_base_path(p))
+	paths.sort(key=lambda p: (0 if p.is_dir() else 1, p.name.lower()))
 	if path != config['base_path']:
 		# only let people go up a directory if they actually can
 		paths = itertools.chain([Path('..')], paths)
 
 	return render_template('list.html', path=request.path, files=map(DisplayPath, paths))
+
+app.errorhandler(FileNotFoundError)(lambda e: app.handle_http_exception(werkzeug.exceptions.NotFound()))
+app.errorhandler(PermissionError)(lambda e: app.handle_http_exception(werkzeug.exceptions.Forbidden()))
 
 if __name__ == '__main__':
 	app.run(use_reloader=True)
