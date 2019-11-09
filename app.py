@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 
 import datetime as dt
+import subprocess
 from functools import partial
 from pathlib import Path, PurePosixPath
 
 import werkzeug.exceptions
-from flask import Flask, abort, render_template, request
+from flask import Flask, Response, abort, render_template, request
 from werkzeug.routing import PathConverter
 
 import utils
@@ -78,7 +79,7 @@ def breadcrumbs(path):
 		yield Breadcrumb(link='../' * (len(path.parts) - i - 1), text=part)
 
 @app.route('/', defaults={'path': config['base_path']})
-@app.route('/<safe_path:path>')
+@app.route('/<safe_path:path>/')
 def index_dir(path):
 	# no hidden
 	if any(part.startswith('.') for part in path.parts):
@@ -114,6 +115,17 @@ def index_dir(path):
 		order=order,
 		breadcrumbs=breadcrumbs(PurePosixPath(request.path)),
 	)
+
+@app.route('/<safe_path:path>/._tar/<dir_name>.tar')
+def tar(path, dir_name):
+	# TODO do this without subprocess
+	# manual tar impl, or maybe https://gist.github.com/chipx86/9598b1e4a9a1a7831054 would work
+	proc = subprocess.Popen(
+		['tar', '--to-stdout', '-c', '--', str(path)],
+		stdout=subprocess.PIPE,
+		stderr=subprocess.DEVNULL,
+	)
+	return Response(proc.stdout, content_type='application/x-tar')
 
 if __name__ == '__main__':
 	app.run(use_reloader=True)
