@@ -2,6 +2,7 @@
 
 import datetime as dt
 import subprocess
+import urllib.parse
 from functools import partial
 from pathlib import Path, PurePosixPath
 
@@ -75,7 +76,6 @@ class Breadcrumb:
 
 def breadcrumbs(path):
 	for i, part in enumerate(path.parts[1:]):
-		print(i, repr(part))
 		yield Breadcrumb(link='../' * (len(path.parts) - i - 1), text=part)
 
 @app.route('/', defaults={'path': config['base_path']})
@@ -101,9 +101,11 @@ def index_dir(path):
 	order = request.args.get('order', 'asc')
 	paths.sort(key=sort_keys.get(sort_key, sort_keys['namedirfirst']), reverse=order == 'desc')
 
+	can_tar = False
 	if path != config['base_path']:
 		# only let people go up a directory if they actually can
 		paths.insert(0, DisplayPath(path / '..'))
+		can_tar = True
 
 	return render_template(
 		'list.html',
@@ -114,14 +116,25 @@ def index_dir(path):
 		sort=sort_key,
 		order=order,
 		breadcrumbs=breadcrumbs(PurePosixPath(request.path)),
+		tar_link=can_tar and urllib.parse.urljoin(request.path, '._tar/' + PurePosixPath(request.path).name + '.tar'),
 	)
+
+TAR_FLAGS = [
+	'--owner=root:0',
+	'--group=root:0',
+	'--no-acls',
+	'--no-selinux',
+	'--no-xattrs',
+	'--sort=name',
+]
 
 @app.route('/<safe_path:path>/._tar/<dir_name>.tar')
 def tar(path, dir_name):
 	# TODO do this without subprocess
 	# manual tar impl, or maybe https://gist.github.com/chipx86/9598b1e4a9a1a7831054 would work
 	proc = subprocess.Popen(
-		['tar', '--to-stdout', '-c', '--', str(path)],
+		['tar', *TAR_FLAGS, '--to-stdout', '-c', '--', str(path.relative_to(path.parent))],
+		cwd=path.parent,
 		stdout=subprocess.PIPE,
 		stderr=subprocess.DEVNULL,
 	)

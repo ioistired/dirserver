@@ -289,6 +289,7 @@ footer {
 					{%- for crumb in breadcrumbs %}<li class=breadcrumb><a href="{{ crumb.link|urlencode }}">{{ crumb.text }}</a>/{%- endfor %}
 				</ol></nav>
 			</h1>
+			{% if tar_link %}<a href="{{ tar_link }}">Download as tar archive</a>{% endif %}
 		</header>
 		<main>
 			<div class="meta">
