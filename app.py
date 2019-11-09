@@ -76,7 +76,7 @@ class Breadcrumb:
 
 def breadcrumbs(path):
 	for i, part in enumerate(path.parts[1:]):
-		yield Breadcrumb(link='../' * (len(path.parts) - i - 1), text=part)
+		yield Breadcrumb(link='../' * (len(path.parts) - i - 2), text=part)
 
 @app.route('/', defaults={'path': config['base_path']})
 @app.route('/<safe_path:path>/')
