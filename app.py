@@ -2,7 +2,7 @@
 
 import datetime as dt
 from functools import partial
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 import werkzeug.exceptions
 from flask import Flask, abort, render_template, request
@@ -73,8 +73,8 @@ class Breadcrumb:
 		self.text = text
 
 def breadcrumbs(path):
-	path = path.relative_to(config['base_path'])
-	for i, part in enumerate(path.parts):
+	for i, part in enumerate(path.parts[1:]):
+		print(i, repr(part))
 		yield Breadcrumb(link='../' * (len(path.parts) - i - 1), text=part)
 
 @app.route('/', defaults={'path': config['base_path']})
@@ -112,7 +112,8 @@ def index_dir(path):
 		num_dirs=num_dirs,
 		sort=sort_key,
 		order=order,
-		breadcrumbs=breadcrumbs(path))
+		breadcrumbs=breadcrumbs(PurePosixPath(request.path)),
+	)
 
 if __name__ == '__main__':
 	app.run(use_reloader=True)
