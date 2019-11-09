@@ -62,7 +62,7 @@ def dir_first(p, key): return (0 if p.is_dir else 1, key)
 
 sort_keys = {
 	'namedirfirst': lambda p: dir_first(p, p.name.lower()),
-	'name': lambda p: p.name,
+	'name': lambda p: p.name.lower(),
 	'time': lambda p: p.modified,
 	'size': lambda p: dir_first(p, p.name.lower() if p.is_dir else p.size),
 }
