@@ -20,7 +20,7 @@ app.errorhandler(PermissionError)(lambda e: app.handle_http_exception(werkzeug.e
 with open('config.py') as f:
 	config = eval(f.read(), {'Path': Path})
 
-config['base_path'] = Path(config['base_path'])  # just in case it's a str
+config['base_path'] = Path(config['base_path']).resolve()  # just in case it's a str
 
 def is_beneath(base_path, path):
 	try:
