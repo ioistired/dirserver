@@ -64,7 +64,7 @@ sort_keys = {
 	'namedirfirst': lambda p: dir_first(p, p.name.lower()),
 	'name': lambda p: p.name,
 	'time': lambda p: p.modified,
-	'size': lambda p: dir_first(p, p.size),
+	'size': lambda p: dir_first(p, p.name.lower() if p.is_dir else p.size),
 }
 
 class Breadcrumb:
