@@ -23,21 +23,22 @@ with open('config.py') as f:
 
 config['base_path'] = Path(config['base_path']).resolve()  # just in case it's a str
 
-def is_beneath(base_path, path):
+def ensure_beneath(base_path, path):
 	try:
 		resolved = (base_path / path).resolve()
 	except RuntimeError:  # symlink recursion
-		return False
+		abort(400)
 
-	return base_path in resolved.parents and resolved
+	if base_path not in resolved.parents:
+		abort(403)
 
-is_in_base_path = partial(is_beneath, config['base_path'])
+	return resolved
+
+ensure_in_base_path = partial(ensure_beneath, config['base_path'])
 
 class SafePathConverter(PathConverter):
 	def to_python(self, value):
-		p = is_in_base_path(Path(value))
-		if not p:
-			abort(400)
+		p = ensure_in_base_path(Path(value))
 		if not p.exists():
 			abort(404)
 		if not p.is_dir():
