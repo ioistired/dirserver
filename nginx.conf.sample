@@ -1,0 +1,43 @@
+upstream dirserver {
+	server 127.0.0.1:8000;
+}
+
+server {
+	server_name dirserver.example;
+
+	include /etc/nginx/sites-common/dirserver.example;
+
+    listen 443 ssl http2;
+	# tls configuration follows…
+}
+
+server {
+	server_name dirserverexample.onion;
+	include /etc/nginx/sites-common/dirserver.example;
+	listen 80;
+}
+
+server {
+	listen 80;
+	server_name dirserver.example;
+	location / {
+		return 301 https://$host$request_uri;
+	}
+}
+
+# configuration file /etc/nginx/sites-common/dirserver.example:
+root /var/web/;
+
+location ~ /$ {
+	uwsgi_pass dirserver;
+	include /etc/nginx/uwsgi_params;
+}
+
+location ~ /\._tar/.+\.tar$ {
+	uwsgi_pass dirserver;
+	include /etc/nginx/uwsgi_params;
+}
+
+location ~ SHA256SUMS$ {
+	default_type text/plain;
+}
