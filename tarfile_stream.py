@@ -1841,12 +1841,8 @@ class TarFile(object):
         else:
             return None
 
-        # Fill the TarInfo object with all
-        # information we can get.
         tarinfo.name = arcname
         tarinfo.mode = stmd
-        tarinfo.uid = statres.st_uid
-        tarinfo.gid = statres.st_gid
         if type == REGTYPE:
             tarinfo.size = statres.st_size
         else:
@@ -1854,16 +1850,6 @@ class TarFile(object):
         tarinfo.mtime = statres.st_mtime
         tarinfo.type = type
         tarinfo.linkname = linkname
-        if pwd:
-            try:
-                tarinfo.uname = pwd.getpwuid(tarinfo.uid)[0]
-            except KeyError:
-                pass
-        if grp:
-            try:
-                tarinfo.gname = grp.getgrgid(tarinfo.gid)[0]
-            except KeyError:
-                pass
 
         if type in (CHRTYPE, BLKTYPE):
             if hasattr(os, "major") and hasattr(os, "minor"):
