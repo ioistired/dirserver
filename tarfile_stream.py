@@ -1930,14 +1930,20 @@ class TarFile(object):
 
         # Append the tar header and data to the archive.
         if tarinfo.isreg():
-            with bltn_open(name, "rb") as f:
-                yield from self.addfile(tarinfo, f)
+            try:
+                with bltn_open(name, "rb") as f:
+                    yield from self.addfile(tarinfo, f)
+            except OSError:
+                return
 
         elif tarinfo.isdir():
             yield from self.addfile(tarinfo)
             if recursive:
-                for f in sorted(os.listdir(name)):
-                    yield from self.add(os.path.join(name, f), os.path.join(arcname, f), recursive, filter=filter)
+                try:
+                    for f in sorted(os.listdir(name)):
+                        yield from self.add(os.path.join(name, f), os.path.join(arcname, f), recursive, filter=filter)
+                except OSError:
+                    return
 
         else:
             yield from self.addfile(tarinfo)
