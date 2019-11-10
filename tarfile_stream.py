@@ -454,6 +454,9 @@ class _Stream:
             yield self.buf[:self.bufsize]
             self.buf = self.buf[self.bufsize:]
 
+    def close(self):
+        self.closed = True
+
     def footer(self):
         """Close the _Stream object. No operation should be
            done on it afterwards.
