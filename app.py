@@ -11,6 +11,7 @@ from flask import Flask, Response, abort, render_template, request
 from werkzeug.routing import PathConverter
 
 import utils
+import tarfile_stream
 
 app = Flask(__name__, static_folder=None)
 app.jinja_env.add_extension('jinja2.ext.loopcontrols')
@@ -119,26 +120,14 @@ def index_dir(path):
 		tar_link=can_tar and urllib.parse.urljoin(request.path, '._tar/' + PurePosixPath(request.path).name + '.tar'),
 	)
 
-TAR_FLAGS = [
-	'--owner=root:0',
-	'--group=root:0',
-	'--no-acls',
-	'--no-selinux',
-	'--no-xattrs',
-	'--sort=name',
-]
-
 @app.route('/<safe_path:path>/._tar/<dir_name>.tar')
 def tar(path, dir_name):
-	# TODO do this without subprocess
-	# manual tar impl, or maybe https://gist.github.com/chipx86/9598b1e4a9a1a7831054 would work
-	proc = subprocess.Popen(
-		['tar', *TAR_FLAGS, '--to-stdout', '-c', '--', str(path.relative_to(path.parent))],
-		cwd=path.parent,
-		stdout=subprocess.PIPE,
-		stderr=subprocess.DEVNULL,
-	)
-	return Response(proc.stdout, content_type='application/x-tar')
+	def gen():
+		tar = tarfile_stream.open(mode='w|')
+		yield from tar.add(path, arcname=path.name)
+		yield from tar.footer()
+
+	return Response(gen(), mimetype='application/x-tar')
 
 if __name__ == '__main__':
 	app.run(use_reloader=True)
