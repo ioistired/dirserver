@@ -43,6 +43,8 @@ class SafePathConverter(PathConverter):
 			abort(404)
 		if not p.is_dir():
 			abort(400)
+		if config.get('exclude_hidden', True) and any(part.startswith('.') for part in p.parts):
+			abort(403)
 		return p
 
 	def to_url(self, path):
@@ -83,10 +85,6 @@ def breadcrumbs(path):
 @app.route('/', defaults={'path': config['base_path']})
 @app.route('/<safe_path:path>/')
 def index_dir(path):
-	# no hidden
-	if any(part.startswith('.') for part in path.parts):
-		abort(403)
-
 	num_files = num_dirs = 0
 	paths = []
 	for p in path.iterdir():
@@ -121,11 +119,16 @@ def index_dir(path):
 		tar_link=can_tar and urllib.parse.urljoin(request.path, '._tar/' + PurePosixPath(request.path).name + '.tar'),
 	)
 
+if config.get('exclude_hidden', True):
+	TAR_FILTER = lambda tarinfo: None if any(part.startswith('.') for part in Path(tarinfo.name).parts) else tarinfo
+else:
+	TAR_FILTER = None
+
 @app.route('/<safe_path:path>/._tar/<dir_name>.tar')
 def tar(path, dir_name):
 	def gen():
 		tar = tarfile_stream.open(mode='w|')
-		yield from tar.add(path, arcname=path.name)
+		yield from tar.add(path, arcname=path.name, filter=TAR_FILTER)
 		yield from tar.footer()
 
 	return Response(gen(), mimetype='application/x-tar')
