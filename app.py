@@ -3,31 +3,17 @@
 # SPDX-License-Identifier: BlueOak-1.0.0
 
 import datetime as dt
-import platform
 import subprocess
 import urllib.parse
 from functools import partial
 from pathlib import Path, PurePosixPath
 
-import flask
-import werkzeug
 import werkzeug.exceptions
 from flask import Flask, Response, abort, render_template, request
 from werkzeug.routing import PathConverter
 
 import utils
 import tarfile_stream
-
-class Flask(Flask):
-	def process_response(self, response):
-		response.headers['Server'] = (
-			'dirserver '
-			f'Flask/{flask.__version__} '
-			f'Werkzeug/{werkzeug.__version__} '
-			f'Python/{platform.python_version()}'
-		)
-		super().process_response(response)
-		return response
 
 app = Flask(__name__, static_folder=None)
 app.jinja_env.add_extension('jinja2.ext.loopcontrols')
