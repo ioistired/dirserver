@@ -10,4 +10,6 @@ Simple directory indexing web server suited to my needs.
 
 ## License
 
-AGPLv3. See LICENSE.md for details.
+- My code: BlueOak v1.0.0. See LICENSE.md for details.
+- `tarfile_stream.py`: MIT. See that file's header for details.
+- `templates/list.html`: Apache-2.0. See that file's header for more details.

@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+# SPDX-License-Identifier: BlueOak-1.0.0
+
 import datetime as dt
 import platform
 import subprocess
