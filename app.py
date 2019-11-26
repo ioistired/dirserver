@@ -6,7 +6,7 @@ import datetime as dt
 import subprocess
 import urllib.parse
 from functools import partial
-from pathlib import Path, PurePosixPath
+from pathlib import Path, PurePath, PurePosixPath
 
 import werkzeug.exceptions
 from flask import Flask, Response, abort, render_template, request
@@ -45,6 +45,7 @@ class SafePathConverter(PathConverter):
 			abort(404)
 		if not p.is_dir():
 			abort(400)
+		# TODO handle the case where the web root itself contains a hidden dir
 		if config.get('exclude_hidden', True) and any(part.startswith('.') for part in p.parts):
 			abort(403)
 		return p
@@ -84,13 +85,31 @@ def breadcrumbs(path):
 	for i, part in enumerate(path.parts[1:]):
 		yield Breadcrumb(link='../' * (len(path.parts) - i - 2), text=part)
 
+if config.get('exclude_hidden', True):
+	def hidden_paths(path):
+		dot_hidden = path / '.hidden'
+		try:
+			with dot_hidden.open() as f:
+				# remove trailing slashes as well as trailing newlines, in case a directory should be hidden
+				return {line.rstrip('/\r\n') for line in f}
+		except OSError:
+			return ()
+else:
+	def hidden_paths(path):
+		return ()
+
 @app.route('/', defaults={'path': config['base_path']})
 @app.route('/<safe_path:path>/')
 def index_dir(path):
 	num_files = num_dirs = 0
 	paths = []
+
 	for p in path.iterdir():
-		if p.name.startswith('.') and config.get('exclude_hidden', True):
+		if config.get('exclude_hidden', True) and (
+			p.name == '.hidden'
+			or p.name in hidden_paths(path)
+			or p.name.startswith('.')
+		):
 			continue
 		p = DisplayPath(p)
 		if p.is_dir:
@@ -103,7 +122,7 @@ def index_dir(path):
 	order = request.args.get('order', 'asc')
 	paths.sort(key=sort_keys.get(sort_key, sort_keys['namedirfirst']), reverse=order == 'desc')
 
-	can_tar = False
+	can_tar = False  # don't let people tar up the entire web server's contents
 	if path != config['base_path']:
 		# only let people go up a directory if they actually can
 		paths.insert(0, DisplayPath(path / '..'))
@@ -122,15 +141,25 @@ def index_dir(path):
 	)
 
 if config.get('exclude_hidden', True):
-	TAR_FILTER = lambda tarinfo: None if any(part.startswith('.') for part in Path(tarinfo.name).parts) else tarinfo
+	def tar_filter(tarinfo, *, parent_path, hidden_paths):
+		# returning None means "don't add this entry to the tar file"
+		if tarinfo.name == '.hidden':
+			return None
+		if any(part.startswith('.') for part in PurePath(tarinfo.name).parts):
+			return None
+		if tarinfo.name.rstrip('/') in hidden_paths:
+			return None
+		return tarinfo
 else:
-	TAR_FILTER = None
+	def tar_filter(tarinfo, *, parent_path, hidden_paths):
+		return tarinfo  # include all files
 
 @app.route('/<safe_path:path>/._tar/<dir_name>.tar')
 def tar(path, dir_name):
 	def gen():
 		tar = tarfile_stream.open(mode='w|')
-		yield from tar.add(path, arcname=path.name, filter=TAR_FILTER)
+		this_tar_filter = partial(tar_filter, parent_path=path, hidden_paths=hidden_paths(path))
+		yield from tar.add(path, arcname=path.name, filter=this_tar_filter)
 		yield from tar.footer()
 
 	return Response(gen(), mimetype='application/x-tar')
