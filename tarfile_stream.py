@@ -36,6 +36,7 @@ __credits__ = "Gustavo Niemeyer, Niels Gust\u00e4bel, Richard Townsend."
 # Imports
 #---------
 from builtins import open as bltn_open
+import contextlib
 import sys
 import os
 import io
@@ -325,7 +326,7 @@ class _LowLevelFile:
             "r": os.O_RDONLY,
             "w": os.O_WRONLY | os.O_CREAT | os.O_TRUNC,
         }[mode]
-        if hasattr(os, "O_BINARY"):
+        with contextlib.suppress(AttributeError):
             mode |= os.O_BINARY
         self.fd = os.open(name, mode, 0o666)
 
