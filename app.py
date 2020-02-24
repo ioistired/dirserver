@@ -130,6 +130,7 @@ else:
 def tar(path, dir_name):
 	def gen():
 		tar = tarfile_stream.open(mode='w|')
+		yield from tar.header()
 		yield from tar.add(path, arcname=path.name, filter=TAR_FILTER)
 		yield from tar.footer()
 

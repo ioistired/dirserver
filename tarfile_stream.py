@@ -105,7 +105,7 @@ SOLARIS_XHDTYPE = b"X"          # Solaris extended header
 USTAR_FORMAT = 0                # POSIX.1-1988 (ustar) format
 GNU_FORMAT = 1                  # GNU tar format
 PAX_FORMAT = 2                  # POSIX.1-2001 (pax) format
-DEFAULT_FORMAT = GNU_FORMAT
+DEFAULT_FORMAT = PAX_FORMAT
 
 #---------------------------------------------------------
 # tarfile constants
@@ -1505,10 +1505,6 @@ class TarFile(object):
             if self.mode in ("a", "w", "x"):
                 self._loaded = True
 
-                if self.pax_headers:
-                    buf = self.tarinfo.create_pax_global_header(self.pax_headers.copy())
-                    self.buf += buf
-                    # self.offset += len(buf)
         except:
             if not self._extfileobj:
                 self.fileobj.close()
@@ -1731,6 +1727,12 @@ class TarFile(object):
         self.closed = True
         if not self._extfileobj:
             self.fileobj.close()
+
+    def header(self):
+        if self.pax_headers:
+            buf = self.tarinfo.create_pax_global_header(self.pax_headers.copy())
+            self.offset += len(buf)
+            yield buf
 
     def footer(self):
         """In write-mode, yield two finishing zero blocks."""
