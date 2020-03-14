@@ -26,11 +26,16 @@ server {
 }
 
 # configuration file /etc/nginx/sites-common/dirserver.example:
-root /var/web/;
 
 location ~ /$ {
 	uwsgi_pass dirserver;
 	include /etc/nginx/uwsgi_params;
+}
+
+location /._protected/ {
+	root /var/web;
+	rewrite /._protected/(.+) /$1;
+	internal;
 }
 
 location ~ /\._tar/.+\.tar$ {

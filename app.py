@@ -9,7 +9,7 @@ from functools import partial
 from pathlib import Path, PurePosixPath
 
 import werkzeug.exceptions
-from flask import Flask, Response, abort, render_template, request
+from flask import Flask, Response, abort, render_template, request, make_response
 from werkzeug.routing import PathConverter
 
 import utils
@@ -43,8 +43,6 @@ class SafePathConverter(PathConverter):
 		p = ensure_in_base_path(Path(value))
 		if not p.exists():
 			abort(404)
-		if not p.is_dir():
-			abort(400)
 		if config.get('exclude_hidden', True) and any(part.startswith('.') for part in p.parts):
 			abort(403)
 		return p
@@ -85,8 +83,13 @@ def breadcrumbs(path):
 		yield Breadcrumb(link='../' * (len(path.parts) - i - 2), text=part)
 
 @app.route('/', defaults={'path': config['base_path']})
-@app.route('/<safe_path:path>/')
+@app.route('/<safe_path:path>')
 def index_dir(path):
+	if not path.is_dir():
+		resp = make_response('')
+		resp.headers['X-Accel-Redirect'] = '/._protected' + request.path
+		return resp
+
 	num_files = num_dirs = 0
 	paths = []
 	for p in path.iterdir():
