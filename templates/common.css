@@ -17,6 +17,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+{% set header_bg = "#f2f2f2" %}
+
 * { padding: 0; margin: 0; }
 
 body {
@@ -44,7 +46,7 @@ header,
 header {
 	padding-top: 25px;
 	padding-bottom: 15px;
-	background-color: #f2f2f2;
+	background-color: {{ header_bg }};
 }
 
 nav {
