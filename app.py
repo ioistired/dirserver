@@ -164,9 +164,17 @@ def highlight(path, filename):
 
 	size = path.stat().st_size
 	if size > 10 * 1000 ** 2:
-		return 'Files bigger than 10 MB cannot be highlighted at this time.', 501
+		resp = make_response('Files bigger than 10 MB cannot be highlighted at this time.', 501)
+		resp.mimetype = 'text/plain'
+		return resp
 
-	code = path.read_text()
+	try:
+		code = path.read_text()
+	except ValueError:
+		resp = make_response('The requested file is not a UTF-8 encoded text file.', 400)
+		resp.mimetype = 'text/plain'
+		return resp
+
 	try:
 		lexer = pygments.lexers.get_lexer_by_name(request.args['lang'])
 	except (KeyError, ValueError):
