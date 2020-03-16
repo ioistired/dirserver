@@ -96,7 +96,7 @@ def breadcrumbs(path):
 	p = PurePosixPath('/')
 	for i, part in enumerate(path.parts[1:]):
 		p /= part
-		yield Breadcrumb(link=p, text=part)
+		yield Breadcrumb(link=str(p) + '/', text=part)
 
 @app.route('/', defaults={'path': base_path})
 @app.route('/<safe_path:path>')
