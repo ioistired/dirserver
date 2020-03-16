@@ -13,6 +13,8 @@ import magic
 import pygments
 import pygments.lexers
 import pygments.formatters
+import pygments.token
+from pygments.styles.default import DefaultStyle
 import werkzeug.exceptions
 from flask import Flask, Response, abort, render_template, request, redirect, make_response
 from werkzeug.routing import PathConverter
@@ -155,6 +157,15 @@ def tar(path, dir_name):
 
 	return Response(gen(), mimetype='application/x-tar')
 
+class PygmentsStyle(DefaultStyle):
+	styles = {
+		**DefaultStyle.styles,
+		pygments.token.Name.Builtin: "",
+		pygments.token.Operator: DefaultStyle.styles[pygments.token.Keyword],
+		pygments.token.Comment.Special: "bg:ansibrightyellow",
+	}
+	del styles[pygments.token.Operator.Word]
+
 @app.route('/._hl/<filename>', defaults={'path': base_path})
 @app.route('/<safe_path:path>/._hl/<filename>')
 def highlight(path, filename):
@@ -183,7 +194,10 @@ def highlight(path, filename):
 		except ValueError:
 			lexer = pygments.lexers.get_lexer_by_name('text')
 
-	formatted = pygments.highlight(code, lexer, pygments.formatters.HtmlFormatter(linenos=True))
+	# highlight "TODO" "XXX" etc
+	lexer.add_filter('codetagify')
+
+	formatted = pygments.highlight(code, lexer, pygments.formatters.HtmlFormatter(linenos=True, style=PygmentsStyle))
 	relpath = PurePosixPath('/') / path.relative_to(base_path)
 	breadcrumbs_ = list(breadcrumbs(relpath))
 	breadcrumbs_[-1].link = ''  # current page, as opposed to "raw" link
