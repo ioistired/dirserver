@@ -161,6 +161,7 @@ class PygmentsStyle(DefaultStyle):
 	styles = {
 		**DefaultStyle.styles,
 		pygments.token.Name.Builtin: "",
+		pygments.token.Name.Exception: "",
 		pygments.token.Operator: DefaultStyle.styles[pygments.token.Keyword],
 		pygments.token.Comment.Special: "bg:ansibrightyellow",
 	}
