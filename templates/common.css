@@ -1,0 +1,107 @@
+/*
+
+This code is modified from https://github.com/caddyserver/caddy/blob/f5720fe/caddyhttp/browse/setup.go#L116-L515
+
+Copyright 2015 Light Code Labs, LLC
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+* { padding: 0; margin: 0; }
+
+body {
+	font-family: sans-serif;
+	text-rendering: optimizespeed;
+	background-color: #ffffff;
+}
+
+a:link {
+	color: #006ed3;
+	text-decoration: none;
+}
+
+a:hover,
+nav a:hover {
+	color: #319cff;
+}
+
+header,
+#summary {
+	padding-left: 5%;
+	padding-right: 5%;
+}
+
+header {
+	padding-top: 25px;
+	padding-bottom: 15px;
+	background-color: #f2f2f2;
+}
+
+nav {
+	font-size: 20px;
+	font-weight: normal;
+	white-space: nowrap;
+	overflow-x: hidden;
+	text-overflow: ellipsis;
+	color: #999;
+}
+
+nav a {
+	color: #000;
+	margin: 0 4px;
+}
+
+nav a:hover {
+	text-decoration: underline;
+}
+
+.breadcrumb:first-child > a:first-child {
+	margin: 0;
+}
+
+main {
+	display: block;
+}
+
+footer {
+	padding: 40px 20px;
+	font-size: 12px;
+	text-align: center;
+}
+
+.breadcrumbs ol {
+	list-style-type: none;
+	/*padding-left: 0;*/
+}
+
+.breadcrumb {
+	display: inline-block;
+}
+
+@media (max-width: 600px) {
+	.hideable {
+		display: none;
+	}
+
+	nav {
+		color: #000;
+	}
+
+	nav a {
+		margin: 0;
+	}
+}
+
+.icon {
+	margin-right: 5px;
+}

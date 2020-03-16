@@ -2,11 +2,18 @@
 
 Simple directory indexing web server suited to my needs.
 
-- Lists out all files for the given request path, which is relative to `config['base_path']`.
+- Lists out all files for the given request path, which is relative to `DIRSERVER_BASE_PATH`.
 - Intentionally does not serve static files. This should be handled by your webserver.
 - Tries not to list directories outside of the web root.
 - Produces a tar archive of any directory (except /, due to routing issues)
   - Symlinks are added as symlinks, not dereferenced.
+
+## Configuration
+
+All configuration is done via environment variables. There are two:
+
+- `DIRSERVER_BASE_PATH`: the path to the root of all files to serve. Required.
+- `DIRSERVER_EXCLUDE_HIDDEN`: whether to hide files whose name starts with a dot. Optional, defaults to `1`.
 
 ## License
 

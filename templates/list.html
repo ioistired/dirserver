@@ -21,29 +21,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <style>
-* { padding: 0; margin: 0; }
-
-body {
-	font-family: sans-serif;
-	text-rendering: optimizespeed;
-	background-color: #ffffff;
-}
-
-a:link {
-	color: #006ed3;
-	text-decoration: none;
-}
-
-a:hover,
-nav a:hover {
-	color: #319cff;
-}
-
-header,
-#summary {
-	padding-left: 5%;
-	padding-right: 5%;
-}
+{% include 'common.css' %}
 
 th:first-child,
 td:first-child {
@@ -53,38 +31,6 @@ td:first-child {
 th:last-child,
 td:last-child {
 	width: 5%;
-}
-
-header {
-	padding-top: 25px;
-	padding-bottom: 15px;
-	background-color: #f2f2f2;
-}
-
-nav {
-	font-size: 20px;
-	font-weight: normal;
-	white-space: nowrap;
-	overflow-x: hidden;
-	text-overflow: ellipsis;
-	color: #999;
-}
-
-nav a {
-	color: #000;
-	margin: 0 4px;
-}
-
-nav a:hover {
-	text-decoration: underline;
-}
-
-.breadcrumb:first-child > a:first-child {
-	margin: 0;
-}
-
-main {
-	display: block;
 }
 
 .meta {
@@ -168,10 +114,6 @@ td .goup {
 	white-space: pre-wrap;
 }
 
-.icon {
-	margin-right: 5px;
-}
-
 .icon.sort {
 	display: inline-block;
 	width: 1em;
@@ -192,26 +134,7 @@ td .goup {
 	left: 0;
 }
 
-footer {
-	padding: 40px 20px;
-	font-size: 12px;
-	text-align: center;
-}
-
-.breadcrumbs ol {
-	list-style-type: none;
-	/*padding-left: 0;*/
-}
-
-.breadcrumb {
-	display: inline-block;
-}
-
 @media (max-width: 600px) {
-	.hideable {
-		display: none;
-	}
-
 	td:nth-child(2) {
 		width: auto;
 	}
@@ -220,14 +143,6 @@ footer {
 	td:nth-child(3) {
 		padding-right: 5%;
 		text-align: right;
-	}
-
-	nav {
-		color: #000;
-	}
-
-	nav a {
-		margin: 0;
 	}
 
 	#filter {
@@ -279,10 +194,8 @@ footer {
 </svg>
 
 <header>
-	<nav class=breadcrumbs><ol>
-		<li class=breadcrumb><a href="/">/</a>
-		{%- for crumb in breadcrumbs %}<li class=breadcrumb><a href="{{ crumb.link|urlencode }}">{{ crumb.text }}</a>/{%- endfor %}
-	</ol></nav>
+	{% from 'breadcrumbs.html' import breadcrumbs_list %}
+	{{ breadcrumbs_list(breadcrumbs) }}
 	{% if tar_link %}<a href="{{ tar_link }}">Download as tar archive</a>{% endif %}
 </header>
 
@@ -342,7 +255,11 @@ footer {
 			<tr class="file">
 				<td></td>
 				<td>
+					{% if item.highlightable %}
+					<a href="._hl/{{ item.name|urlencode }}">
+					{% else %}
 					<a href="{{ item.name|urlencode }}">
+					{% endif %}
 						{% if item.is_dir %}
 						<svg width="1.5em" height="1em" version="1.1" viewBox="0 0 317 259"><use xlink:href="#folder{% if item.is_symlink %}-shortcut{% endif %}"></use></svg>
 						{% else %}
