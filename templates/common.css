@@ -52,9 +52,7 @@ header {
 nav {
 	font-size: 20px;
 	font-weight: normal;
-	white-space: nowrap;
-	overflow-x: hidden;
-	text-overflow: ellipsis;
+	text-overflow: wrap;
 	color: #999;
 }
 
