@@ -17,7 +17,7 @@ import pygments.formatters
 import pygments.token
 from pygments.styles.default import DefaultStyle
 import werkzeug.exceptions
-from flask import Flask, Response, abort, render_template, request, redirect, make_response
+from flask import Flask, Response, abort, render_template, request, redirect, url_for, make_response
 from werkzeug.routing import PathConverter
 
 import utils
@@ -263,16 +263,12 @@ def highlight(path, filename):
 
 	size = path.stat().st_size
 	if size > 10 * 1000 ** 2:
-		resp = make_response('Files bigger than 10 MB cannot be highlighted at this time.', 501)
-		resp.mimetype = 'text/plain'
-		return resp
+		return redirect(url_for('.index_dir', path=path))
 
 	try:
 		code = path.read_text()
 	except ValueError:
-		resp = make_response('The requested file is not a UTF-8 encoded text file.', 400)
-		resp.mimetype = 'text/plain'
-		return resp
+		return redirect(url_for('.index_dir', path=path))
 
 	try:
 		lexer = pygments.lexers.get_lexer_by_name(request.args['lang'])
