@@ -124,11 +124,12 @@ def index_dir(path):
 	order = request.args.get('order', 'asc')
 	paths.sort(key=sort_keys.get(sort_key, sort_keys['namedirfirst']), reverse=order == 'desc')
 
-	can_tar = False
 	if path != base_path:
 		# only let people go up a directory if they actually can
 		paths.insert(0, DisplayPath(path / '..'))
-		can_tar = True
+		tar_link = urllib.parse.urljoin(request.path, '._tar/' + PurePosixPath(request.path).with_suffix('.tar').name)
+	else:
+		tar_link = '/._tar/root.tar'
 
 	return render_template(
 		'list.html',
@@ -139,7 +140,7 @@ def index_dir(path):
 		sort=sort_key,
 		order=order,
 		breadcrumbs=breadcrumbs(PurePosixPath(request.path)),
-		tar_link=can_tar and urllib.parse.urljoin(request.path, '._tar/' + PurePosixPath(request.path).name + '.tar'),
+		tar_link=tar_link,
 	)
 
 if exclude_hidden:
@@ -147,12 +148,13 @@ if exclude_hidden:
 else:
 	TAR_FILTER = None
 
+@app.route('/._tar/<dir_name>.tar', defaults={'path': base_path})
 @app.route('/<safe_path:path>/._tar/<dir_name>.tar')
 def tar(path, dir_name):
 	def gen():
 		tar = tarfile_stream.open(mode='w|')
 		yield from tar.header()
-		yield from tar.add(path, arcname=path.name, filter=TAR_FILTER)
+		yield from tar.add(path, arcname='' if path == base_path else dir_name, filter=TAR_FILTER)
 		yield from tar.footer()
 
 	return Response(gen(), mimetype='application/x-tar')
