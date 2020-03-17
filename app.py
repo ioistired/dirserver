@@ -160,16 +160,16 @@ def index_dir(path):
 		breadcrumbs=breadcrumbs(PurePosixPath(request.path)),
 		tar_link=tar_link,
 		tar_opus_link=tar_opus_link,
+		is_root=path==base_path,
 	)
 
 if exclude_hidden:
-	TAR_FILTER = lambda tarinfo: None if any(part.startswith('.') for part in Path(tarinfo.name).parts) else tarinfo
+	TAR_FILTER = lambda tarinfo: None if any(part.startswith('.') for part in Path(tarinfo.name).resolve().parts) else tarinfo
 else:
 	TAR_FILTER = None
 
-@app.route('/._tar/<dir_name>.opus.tar', defaults={'path': base_path})
-@app.route('/<safe_path:path>/._tar/<dir_name>.opus.tar')
 @app.route('/._tar/<dir_name>.tar', defaults={'path': base_path})
+@app.route('/<safe_path:path>/._tar/<dir_name>.tar')
 @app.route('/<safe_path:path>/._tar/<dir_name>.opus.tar')
 def tar(path, dir_name):
 	is_opus = request.path.endswith('.opus.tar')
@@ -177,7 +177,7 @@ def tar(path, dir_name):
 		tar = tarfile_stream.open(mode='w|')
 		yield from tar.header()
 		if is_opus:
-			yield from opus_adder(tar, path, arcname=Path('') if path == base_path else Path(dir_name))
+			yield from opus_adder(tar, path, arcname=Path(dir_name))
 		else:
 			yield from tar.add(path, arcname='' if path == base_path else dir_name, filter=TAR_FILTER)
 		yield from tar.footer()

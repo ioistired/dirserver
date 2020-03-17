@@ -200,8 +200,14 @@ td .goup {
 <header>
 	{% from 'breadcrumbs.html' import breadcrumbs_list %}
 	{{ breadcrumbs_list(breadcrumbs, opus_requested=opus_requested) }}
-	<a href="{{ tar_link }}">Download as tar archive</a><br>
-	<a href="{{ tar_opus_link }}">Download as tar archive, encoded to opus</a>
+	<a href="{{ tar_link|urlencode }}">Download as tar archive</a>
+	{% if not is_root %}
+		<a href="{{ tar_opus_link|urlencode }}" title="Download as tar archive, encoded to opus">
+			<svg version="1.1" width="1.5em" height="1em" viewBox="0 0 951 1442">
+				<use xlink:href="#opus-logo"></use>
+			</svg>
+		</a>
+	{% endif %}
 </header>
 
 <main>
