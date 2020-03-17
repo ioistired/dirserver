@@ -48,6 +48,11 @@ location ~ /\._hl/ {
 	include /etc/nginx/uwsgi_params;
 }
 
+location ~ /._opus/ {
+	uwsgi_pass dirserver;
+	include /etc/nginx/uwsgi_params;
+}
+
 location ~ SHA256SUMS$ {
 	default_type text/plain;
 }
