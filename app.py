@@ -29,6 +29,12 @@ app.jinja_env.add_extension('jinja2.ext.loopcontrols')
 app.errorhandler(FileNotFoundError)(lambda e: app.handle_http_exception(werkzeug.exceptions.NotFound()))
 app.errorhandler(PermissionError)(lambda e: app.handle_http_exception(werkzeug.exceptions.Forbidden()))
 
+@app.after_request
+def set_server_header(resp):
+	# don't leak flask, werkzeug, and python versions
+	resp.headers['Server'] = 'Flask'
+	return resp
+
 base_path = Path(os.environ['DIRSERVER_BASE_PATH']).resolve()
 exclude_hidden = os.environ.get('DIRSERVER_EXCLUDE_HIDDEN', '1').lower() in ('1', 'on', 'true')
 
