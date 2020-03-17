@@ -67,7 +67,6 @@ app.url_map.converters['safe_path'] = SafePathConverter
 
 OPUSENC_SUPPORTED_AUDIO_TYPES = frozenset({
 	'audio/x-aiff',
-	'audio/ogg',
 	'audio/flac',
 	'audio/basic',  # PCM
 })
