@@ -5,6 +5,7 @@
 import datetime as dt
 import subprocess
 import os
+import tempfile
 import urllib.parse
 from functools import partial
 from pathlib import Path, PurePosixPath
@@ -140,8 +141,13 @@ def index_dir(path):
 		# only let people go up a directory if they actually can
 		paths.insert(0, DisplayPath(path / '..'))
 		tar_link = urllib.parse.urljoin(request.path, '._tar/' + PurePosixPath(request.path).with_suffix('.tar').name)
+		tar_opus_link = urllib.parse.urljoin(
+			request.path,
+			'._tar/' + PurePosixPath(request.path).with_suffix('.opus.tar').name,
+		)
 	else:
 		tar_link = '/._tar/root.tar'
+		tar_opus_link = '/._tar/root.opus.tar'
 
 	return render_template(
 		'list.html',
@@ -153,6 +159,7 @@ def index_dir(path):
 		order=order,
 		breadcrumbs=breadcrumbs(PurePosixPath(request.path)),
 		tar_link=tar_link,
+		tar_opus_link=tar_opus_link,
 	)
 
 if exclude_hidden:
@@ -160,16 +167,53 @@ if exclude_hidden:
 else:
 	TAR_FILTER = None
 
+@app.route('/._tar/<dir_name>.opus.tar', defaults={'path': base_path})
+@app.route('/<safe_path:path>/._tar/<dir_name>.opus.tar')
 @app.route('/._tar/<dir_name>.tar', defaults={'path': base_path})
-@app.route('/<safe_path:path>/._tar/<dir_name>.tar')
+@app.route('/<safe_path:path>/._tar/<dir_name>.opus.tar')
 def tar(path, dir_name):
+	is_opus = request.path.endswith('.opus.tar')
 	def gen():
 		tar = tarfile_stream.open(mode='w|')
 		yield from tar.header()
-		yield from tar.add(path, arcname='' if path == base_path else dir_name, filter=TAR_FILTER)
+		if is_opus:
+			yield from opus_adder(tar, path, arcname=Path('') if path == base_path else Path(dir_name))
+		else:
+			yield from tar.add(path, arcname='' if path == base_path else dir_name, filter=TAR_FILTER)
 		yield from tar.footer()
 
 	return Response(gen(), mimetype='application/x-tar')
+
+def opus_adder(tar, path, arcname=None):
+	if arcname is None:
+		if path.is_dir():
+			arcname = Path(path.name)
+		else:
+			arcname = Path(path.with_suffix('.opus').name)
+	if path.is_dir():
+		for f in sorted(path.iterdir()):
+			if f.is_file():
+				mime_type = magic.from_file(str(f), mime=True)
+				if mime_type in OPUSENC_SUPPORTED_AUDIO_TYPES:
+					tmp = tempfile.mktemp()
+					try:
+						proc = subprocess.Popen(
+							['opusenc', str(f), tmp],
+							stdin=subprocess.DEVNULL,
+							stdout=subprocess.DEVNULL,
+							stderr=subprocess.DEVNULL,
+							bufsize=0,
+						)
+						proc.wait()
+						yield from tar.add(tmp, (arcname / f.name).with_suffix('.opus'), filter=TAR_FILTER)
+					finally:
+						os.remove(tmp)
+				else:
+					yield from tar.add(f, arcname / f.name, filter=TAR_FILTER)
+			else:
+				yield from opus_adder(tar, f, arcname / f.name)
+	else:
+		yield from tar.add(path, filter=TAR_FILTER)
 
 @app.route('/._opus/<filename>', defaults={'path': base_path})
 @app.route('/<safe_path:path>/._opus/<filename>')

@@ -200,7 +200,8 @@ td .goup {
 <header>
 	{% from 'breadcrumbs.html' import breadcrumbs_list %}
 	{{ breadcrumbs_list(breadcrumbs, opus_requested=opus_requested) }}
-	<a href="{{ tar_link }}">Download as tar archive</a>
+	<a href="{{ tar_link }}">Download as tar archive</a><br>
+	<a href="{{ tar_opus_link }}">Download as tar archive, encoded to opus</a>
 </header>
 
 <main>
