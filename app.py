@@ -89,7 +89,7 @@ class DisplayPath:
 			else:
 				self.highlightable = True
 
-			self.opus_encodable = self.mime_type in OPUSENC_SUPPORTED_AUDIO_TYPES
+			self.opus_encodable = self.mime_type in OPUSENC_SUPPORTED_AUDIO_TYPES and not is_already_opus(path)
 
 def dir_first(p, key): return (0 if p.is_dir else 1, key)
 
@@ -194,7 +194,7 @@ def opus_adder(tar, path, arcname=None):
 		for f in sorted(path.iterdir()):
 			if f.is_file():
 				mime_type = magic.from_file(str(f), mime=True)
-				if mime_type in OPUSENC_SUPPORTED_AUDIO_TYPES:
+				if mime_type in OPUSENC_SUPPORTED_AUDIO_TYPES and not is_already_opus(f):
 					tmp = tempfile.mktemp()
 					try:
 						proc = subprocess.Popen(
@@ -219,7 +219,10 @@ def opus_adder(tar, path, arcname=None):
 @app.route('/<safe_path:path>/._opus/<filename>')
 def opus(path, filename):
 	path /= filename
-	encoder_proc = request.proc = subprocess.Popen(
+	if is_already_opus(path):
+		# just serve it as is
+		return index_dir(path)
+	encoder_proc = subprocess.Popen(
 		['opusenc', str(path), '-'],
 		stdin=subprocess.DEVNULL,
 		stdout=subprocess.PIPE,
@@ -230,6 +233,17 @@ def opus(path, filename):
 	opus_name = path.with_suffix('.opus').name.replace('"', r'\"')
 	resp.headers['Content-Disposition'] = f'inline; filename*="{opus_name}"'
 	return resp
+
+def is_already_opus(path):
+	proc = subprocess.Popen(
+		['opusinfo', str(path)],
+		stdin=subprocess.DEVNULL,
+		stdout=subprocess.DEVNULL,
+		stderr=subprocess.DEVNULL,
+		bufsize=0,
+	)
+	proc.wait()
+	return proc.returncode == 0
 
 class PygmentsStyle(DefaultStyle):
 	styles = {
