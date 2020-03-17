@@ -235,15 +235,7 @@ def opus(path, filename):
 	return resp
 
 def is_already_opus(path):
-	proc = subprocess.Popen(
-		['opusinfo', str(path)],
-		stdin=subprocess.DEVNULL,
-		stdout=subprocess.DEVNULL,
-		stderr=subprocess.DEVNULL,
-		bufsize=0,
-	)
-	proc.wait()
-	return proc.returncode == 0
+	return 'Opus audio,' in magic.Magic(keep_going=True).from_file(str(path))
 
 class PygmentsStyle(DefaultStyle):
 	styles = {
