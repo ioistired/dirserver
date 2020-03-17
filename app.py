@@ -71,6 +71,8 @@ OPUSENC_SUPPORTED_AUDIO_TYPES = frozenset({
 	'audio/basic',  # PCM
 })
 
+OPUSENC_FLAGS = ['--music', '--padding' '0' '--bitrate', '160']
+
 class DisplayPath:
 	def __init__(self, path):
 		self.path = path
@@ -203,7 +205,7 @@ def opus_adder(tar, path, arcname=None):
 					tmp = tempfile.mktemp()
 					try:
 						proc = subprocess.Popen(
-							['opusenc', str(f), tmp],
+							['opusenc', *OPUSENC_FLAGS, str(f), tmp],
 							stdin=subprocess.DEVNULL,
 							stdout=subprocess.DEVNULL,
 							stderr=subprocess.DEVNULL,
@@ -228,7 +230,7 @@ def opus(path, filename):
 		# just serve it as is
 		return index_dir(path)
 	encoder_proc = subprocess.Popen(
-		['opusenc', str(path), '-'],
+		['opusenc', *OPUSENC_FLAGS, str(path), '-'],
 		stdin=subprocess.DEVNULL,
 		stdout=subprocess.PIPE,
 		stderr=subprocess.DEVNULL,
