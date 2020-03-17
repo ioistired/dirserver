@@ -36,6 +36,7 @@ location /._protected/ {
 	root /var/web;
 	rewrite /._protected/(.+) /$1;
 	internal;
+	add_header Content-Disposition inline;
 }
 
 location ~ /\._tar/.+\.tar$ {
