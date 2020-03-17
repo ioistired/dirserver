@@ -1,4 +1,4 @@
-{% macro breadcrumbs_list(breadcrumbs, trailing_slash=True) %}
+{% macro breadcrumbs_list(breadcrumbs, trailing_slash=True, opus_requested=False) %}
 <nav class=breadcrumbs><ol>
 	<li class=breadcrumb><a href="/">/</a>
 	{% for crumb in breadcrumbs %}
@@ -6,5 +6,6 @@
 			><a href="{{ crumb.link|urlencode }}">{{ crumb.text }}</a
 		>{% if not loop.last or trailing_slash %}/{% endif %}
 	{% endfor %}
+	{% if opus_requested %}(opus mode){% endif %}
 </ol></nav>
 {% endmacro %}

@@ -58,25 +58,37 @@ class SafePathConverter(PathConverter):
 
 app.url_map.converters['safe_path'] = SafePathConverter
 
+OPUSENC_SUPPORTED_AUDIO_TYPES = frozenset({
+	'audio/x-aiff',
+	'audio/ogg',
+	'audio/flac',
+	'audio/basic',  # PCM
+})
+
 class DisplayPath:
 	def __init__(self, path):
 		self.path = path
 		self.is_file = path.is_file()
 		self.is_dir = is_dir = path.is_dir()
 		self.is_symlink = path.is_symlink()
+		self.dirname = path.relative_to(base_path).parent
 		self.name = path.name + ('/' if is_dir else '')
 		self.stat = stat = path.lstat()
 		self.modified = dt.datetime.fromtimestamp(stat.st_mtime)
 		self.size = stat.st_size
 		self.natural_size = utils.natural_size(stat.st_size)
+		self.highlightable = False
+		self.opus_encodable = False
 		if self.is_file:
 			self.mime_type = magic.from_file(str(path), mime=True)
 			try:
 				pygments.lexers.get_lexer_for_mimetype(self.mime_type)
 			except ValueError:
-				self.highlightable = False
+				pass
 			else:
 				self.highlightable = True
+
+			self.opus_encodable = self.mime_type in OPUSENC_SUPPORTED_AUDIO_TYPES
 
 def dir_first(p, key): return (0 if p.is_dir else 1, key)
 
@@ -158,6 +170,22 @@ def tar(path, dir_name):
 		yield from tar.footer()
 
 	return Response(gen(), mimetype='application/x-tar')
+
+@app.route('/._opus/<filename>', defaults={'path': base_path})
+@app.route('/<safe_path:path>/._opus/<filename>')
+def opus(path, filename):
+	path /= filename
+	encoder_proc = request.proc = subprocess.Popen(
+		['opusenc', str(path), '-'],
+		stdin=subprocess.DEVNULL,
+		stdout=subprocess.PIPE,
+		stderr=subprocess.DEVNULL,
+		bufsize=0,
+	)
+	resp = Response(encoder_proc.stdout, mimetype='audio/ogg')
+	opus_name = path.with_suffix('.opus').name.replace('"', r'\"')
+	resp.headers['Content-Disposition'] = f'inline; filename*="{opus_name}"'
+	return resp
 
 class PygmentsStyle(DefaultStyle):
 	styles = {
