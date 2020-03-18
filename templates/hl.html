@@ -2,7 +2,7 @@
 <html lang="">
 <head>
 	<meta charset=utf-8>
-	<meta name=viewport content="width=device-width, initial-scale=1.0">
+	<meta name=viewport content="width=device-width, initial-scale=1.0 user-scalable=no">
 	<title>{{ filename }}</title>
 	<style>
 	{% include 'common.css' %}
@@ -11,6 +11,7 @@
 main {
 	background: #f8f8f8;
 	padding-left: 5%;
+	overflow-x: auto;
 }
 
 table {
@@ -22,12 +23,14 @@ table {
 }
 
 td.linenos {
+	padding-top: 1%;
 	left: 0;
 	position: sticky;
 	-webkit-position: sticky;
 }
 
 pre {
+	padding-top: 1%;
 	tab-size: 4;
 	-moz-tab-size: 4;
 }
