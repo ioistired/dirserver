@@ -71,7 +71,7 @@ OPUSENC_SUPPORTED_AUDIO_TYPES = frozenset({
 	'audio/basic',  # PCM
 })
 
-OPUSENC_FLAGS = ['--padding' '0' '--bitrate', '160']
+OPUSENC_FLAGS = ['--padding', '0', '--bitrate', '160']
 
 class DisplayPath:
 	def __init__(self, path):
