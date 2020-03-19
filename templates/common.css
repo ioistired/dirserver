@@ -27,10 +27,6 @@ body {
 	background-color: #ffffff;
 }
 
-nav a {
-	margin: 0;
-}
-
 a:link {
 	color: #006ed3;
 	text-decoration: none;
@@ -62,7 +58,7 @@ nav {
 
 nav a {
 	color: #000;
-	margin: 0 4px;
+	margin: 0;
 }
 
 nav a:hover {
