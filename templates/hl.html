@@ -13,6 +13,10 @@ main {
 	padding-left: 5%;
 }
 
+.container {
+	overflow-x: auto;
+}
+
 table {
 	border-collapse: collapse;
 }
@@ -114,8 +118,10 @@ body .il { color: #666666 } /* Literal.Number.Integer.Long */
 		{{ breadcrumbs_list(breadcrumbs, trailing_slash=False) }}
 		<a href="{{ raw_link }}">View raw</a>
 	</header>
-	<main>
-		{{ code|safe }}
-	</main>
+	<div class=container>
+		<main>
+			{{ code|safe }}
+		</main>
+	</div>
 </body>
 </html>
