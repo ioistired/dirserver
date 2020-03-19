@@ -71,7 +71,7 @@ OPUSENC_SUPPORTED_AUDIO_TYPES = frozenset({
 	'audio/basic',  # PCM
 })
 
-OPUSENC_FLAGS = ['--padding' '0' '--bitrate', '160']
+OPUSENC_FLAGS = ['--padding', '0', '--bitrate', '160']
 
 class DisplayPath:
 	def __init__(self, path):
@@ -237,7 +237,7 @@ def opus(path, filename):
 		bufsize=0,
 	)
 	resp = Response(encoder_proc.stdout, mimetype='audio/ogg')
-	opus_name = path.with_suffix('.opus').name.replace('"', r'\"')
+	opus_name = urllib.parse.quote(path.with_suffix('.opus').name.replace('"', r'\"'))
 	resp.headers['Content-Disposition'] = f'inline; filename*="{opus_name}"'
 	return resp
 
