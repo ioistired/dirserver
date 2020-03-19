@@ -101,6 +101,8 @@ footer {
 		color: #000;
 	}
 
+	main {
+		padding-left: 3% !important;
 	}
 }
 
