@@ -238,7 +238,7 @@ def opus(path, filename):
 	)
 	resp = Response(encoder_proc.stdout, mimetype='audio/ogg')
 	opus_name = urllib.parse.quote(path.with_suffix('.opus').name.replace('"', r'\"'))
-	resp.headers['Content-Disposition'] = f'inline; filename*="{opus_name}"'
+	resp.headers['Content-Disposition'] = f"inline; filename*=utf-8''{opus_name}"
 	return resp
 
 def is_already_opus(path):
