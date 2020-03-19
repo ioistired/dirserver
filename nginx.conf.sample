@@ -7,6 +7,8 @@ server {
 
 	include /etc/nginx/sites-common/dirserver.example;
 
+	add_header X-Content-Type-Options nosniff always;
+
     listen 443 ssl http2;
 	# tls configuration follows…
 }
