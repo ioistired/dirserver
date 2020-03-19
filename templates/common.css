@@ -1,5 +1,4 @@
-/*
-
+{#
 This code is modified from https://github.com/caddyserver/caddy/blob/f5720fe/caddyhttp/browse/setup.go#L116-L515
 
 Copyright 2015 Light Code Labs, LLC
@@ -15,7 +14,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-*/
+#}
 
 {% set header_bg = "#f2f2f2" %}
 
