@@ -175,9 +175,9 @@ if exclude_hidden:
 else:
 	TAR_FILTER = None
 
-@app.route('/._tar/<dir_name>.tar', defaults={'path': base_path})
-@app.route('/<safe_path:path>/._tar/<dir_name>.tar')
-@app.route('/<safe_path:path>/._tar/<dir_name>.opus.tar')
+@app.route('/._tar/<path:dir_name>.tar', defaults={'path': base_path})
+@app.route('/<safe_path:path>/._tar/<path:dir_name>.tar')
+@app.route('/<safe_path:path>/._tar/<path:dir_name>.opus.tar')
 def tar(path, dir_name):
 	is_opus = request.path.endswith('.opus.tar')
 	def gen():
