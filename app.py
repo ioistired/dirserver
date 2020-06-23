@@ -15,6 +15,7 @@ import pygments
 import pygments.lexers
 import pygments.formatters
 import pygments.token
+import pygments.util
 from pygments.styles.default import DefaultStyle
 import werkzeug.exceptions
 from flask import Flask, Response, abort, render_template, request, redirect, url_for, make_response
@@ -88,15 +89,15 @@ class DisplayPath:
 		self.highlightable = False
 		self.opus_encodable = False
 		if self.is_file:
-			self.mime_type = magic.from_file(str(path), mime=True)
 			try:
-				pygments.lexers.get_lexer_for_mimetype(self.mime_type)
-			except ValueError:
+				pygments.lexers.get_lexer_for_filename(path.name)
+			except pygments.util.ClassNotFound:
 				pass
 			else:
 				self.highlightable = True
 
-			self.opus_encodable = self.mime_type in OPUSENC_SUPPORTED_AUDIO_TYPES and not is_already_opus(path)
+			mime_type = magic.from_file(str(path), mime=True)
+			self.opus_encodable = mime_type in OPUSENC_SUPPORTED_AUDIO_TYPES and not is_already_opus(path)
 
 def dir_first(p, key): return (0 if p.is_dir else 1, key)
 
@@ -274,8 +275,8 @@ def highlight(path, filename):
 		lexer = pygments.lexers.get_lexer_by_name(request.args['lang'])
 	except (KeyError, ValueError):
 		try:
-			lexer = pygments.lexers.guess_lexer(code)
-		except ValueError:
+			lexer = pygments.lexers.get_lexer_for_filename(filename)
+		except pygments.util.ClassNotFound:
 			lexer = pygments.lexers.get_lexer_by_name('text')
 
 	# highlight "TODO" "XXX" etc
