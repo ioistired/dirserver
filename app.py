@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: BlueOak-1.0.0
 
 import datetime as dt
+import mimetypes
 import subprocess
 import os
 import tempfile
@@ -87,7 +88,7 @@ class DisplayPath:
 		self.opus_encodable = False
 		if self.is_file:
 			try:
-				pygments.lexers.get_lexer_for_filename(path.name)
+				pygments.lexers.get_lexer_for_mimetype(mimetypes.guess_type(path.name)[0])
 			except pygments.util.ClassNotFound:
 				pass
 			else:
