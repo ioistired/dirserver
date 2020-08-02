@@ -1,3 +1,4 @@
 flask
 python-magic
 pygments
+Flask-Profile
