@@ -10,7 +10,6 @@ import urllib.parse
 from functools import partial
 from pathlib import Path, PurePosixPath
 
-import magic
 import pygments
 import pygments.lexers
 import pygments.formatters
@@ -70,12 +69,6 @@ class SafePathConverter(PathConverter):
 
 app.url_map.converters['safe_path'] = SafePathConverter
 
-OPUSENC_SUPPORTED_AUDIO_TYPES = frozenset({
-	'audio/x-aiff',
-	'audio/flac',
-	'audio/basic',  # PCM
-})
-
 OPUSENC_FLAGS = ['--padding', '0', '--bitrate', '160']
 
 class DisplayPath:
@@ -100,8 +93,7 @@ class DisplayPath:
 			else:
 				self.highlightable = True
 
-			mime_type = magic.from_file(str(path), mime=True)
-			self.opus_encodable = mime_type in OPUSENC_SUPPORTED_AUDIO_TYPES and not is_already_opus(path)
+			self.opus_encodable = bool(utils.path_is_opusenc_encodable(path))
 
 def dir_first(p, key): return (0 if p.is_dir else 1, key)
 
@@ -205,8 +197,7 @@ def opus_adder(tar, path, arcname=None):
 	if path.is_dir():
 		for f in sorted(path.iterdir()):
 			if f.is_file():
-				mime_type = magic.from_file(str(f), mime=True)
-				if mime_type in OPUSENC_SUPPORTED_AUDIO_TYPES and not is_already_opus(f):
+				if utils.path_is_opusenc_encodable(f):
 					tmp = tempfile.mktemp()
 					try:
 						proc = subprocess.Popen(
@@ -231,7 +222,7 @@ def opus_adder(tar, path, arcname=None):
 @app.route('/<safe_path:path>/._opus/<filename>')
 def opus(path, filename):
 	path /= filename
-	if is_already_opus(path):
+	if not utils.path_is_opusenc_encodable(path):
 		# just serve it as is
 		return index_dir(path)
 	encoder_proc = subprocess.Popen(
@@ -245,9 +236,6 @@ def opus(path, filename):
 	opus_name = urllib.parse.quote(path.with_suffix('.opus').name.replace('"', r'\"'))
 	resp.headers['Content-Disposition'] = f"inline; filename*=utf-8''{opus_name}"
 	return resp
-
-def is_already_opus(path):
-	return 'Opus audio,' in magic.Magic(keep_going=True).from_file(str(path))
 
 class PygmentsStyle(DefaultStyle):
 	styles = {
