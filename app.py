@@ -20,7 +20,6 @@ from pygments.styles.default import DefaultStyle
 import werkzeug.exceptions
 from flask import Flask, Response, abort, render_template, request, redirect, url_for, make_response
 from werkzeug.routing import PathConverter
-from flask_profile import Profiler
 
 import utils
 import tarfile_stream
@@ -30,9 +29,6 @@ app.url_map.strict_slashes = True
 app.jinja_env.add_extension('jinja2.ext.loopcontrols')
 app.errorhandler(FileNotFoundError)(lambda e: app.handle_http_exception(werkzeug.exceptions.NotFound()))
 app.errorhandler(PermissionError)(lambda e: app.handle_http_exception(werkzeug.exceptions.Forbidden()))
-
-app.debug = True
-Profiler().init_app(app)
 
 @app.after_request
 def set_server_header(resp):
