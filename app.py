@@ -191,29 +191,31 @@ def opus_adder(tar, path, arcname=None):
 			arcname = Path(path.name)
 		else:
 			arcname = Path(path.with_suffix('.opus').name)
-	if path.is_dir():
-		for f in sorted(path.iterdir()):
-			if f.is_file():
-				if utils.path_is_opusenc_encodable(f):
-					tmp = tempfile.mktemp()
-					try:
-						proc = subprocess.Popen(
-							['opusenc', *OPUSENC_FLAGS, str(f), tmp],
-							stdin=subprocess.DEVNULL,
-							stdout=subprocess.DEVNULL,
-							stderr=subprocess.DEVNULL,
-							bufsize=0,
-						)
-						proc.wait()
-						yield from tar.add(tmp, (arcname / f.name).with_suffix('.opus'), filter=TAR_FILTER)
-					finally:
-						os.remove(tmp)
-				else:
-					yield from tar.add(f, arcname / f.name, filter=TAR_FILTER)
-			else:
-				yield from opus_adder(tar, f, arcname / f.name)
-	else:
+
+	if path.is_file():
 		yield from tar.add(path, filter=TAR_FILTER)
+		return
+
+	for f in sorted(path.iterdir()):
+		if f.is_dir():
+			yield from opus_adder(tar, f, arcname / f.name)
+			continue
+
+		if not utils.path_is_opusenc_encodable(f):
+			yield from tar.add(f, arcname / f.name, filter=TAR_FILTER)
+			continue
+
+		with tempfile.NamedTemporaryFile() as tmp:
+			tmp = tmp.name
+			proc = subprocess.Popen(
+				['opusenc', *OPUSENC_FLAGS, str(f), tmp],
+				stdin=subprocess.DEVNULL,
+				stdout=subprocess.DEVNULL,
+				stderr=subprocess.DEVNULL,
+				bufsize=0,
+			)
+			proc.wait()
+			yield from tar.add(tmp, (arcname / f.name).with_suffix('.opus'), filter=TAR_FILTER)
 
 @app.route('/._opus/<filename>', defaults={'path': base_path})
 @app.route('/<safe_path:path>/._opus/<filename>')
