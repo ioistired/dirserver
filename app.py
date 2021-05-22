@@ -160,10 +160,12 @@ def index_dir(path):
 	if path != base_path:
 		# only let people go up a directory if they actually can
 		paths.insert(0, DisplayPath(path / '..'))
-		tar_link = urllib.parse.urljoin(request.path, '._tar/' + PurePosixPath(request.path).with_suffix('.tar').name)
+		# we can't use with_suffix here because the path doesn't have one,
+		# so paths with "." in them would get cut off
+		tar_link = urllib.parse.urljoin(request.path, '._tar/' + PurePosixPath(request.path).name + '.tar')
 		tar_opus_link = urllib.parse.urljoin(
 			request.path,
-			'._tar/' + PurePosixPath(request.path).with_suffix('.opus.tar').name,
+			'._tar/' + PurePosixPath(request.path).name + '.opus.tar',
 		)
 	else:
 		tar_link = '/._tar/root.tar'
