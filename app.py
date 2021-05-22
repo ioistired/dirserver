@@ -24,11 +24,30 @@ from werkzeug.routing import PathConverter
 import utils
 import tarfile_stream
 
+ENABLED = frozenset({'1', 'on', 'true'})
+
+plus_as_space = os.environ.get('DIRSERVER_PLUS_AS_SPACE', '0').lower() in ENABLED
+if plus_as_space:
+	try:
+		import gunicorn.util
+	except ImportError:
+		plus_as_space = False
+		print('Warning: DIRSERVER_PLUS_AS_SPACE is enabled but gunicorn was not found. This feature requires gunicorn.')
+	else:
+		def unquote_to_wsgi_str(string):
+			string = string.replace('+', ' ')
+			return urllib.parse.unquote_to_bytes(string).decode('latin-1')
+		gunicorn.util.unquote_to_wsgi_str = unquote_to_wsgi_str
+		del unquote_to_wsgi_str
+
 app = Flask(__name__, static_folder=None)
 app.url_map.strict_slashes = True
 app.jinja_env.add_extension('jinja2.ext.loopcontrols')
 app.errorhandler(FileNotFoundError)(lambda e: app.handle_http_exception(werkzeug.exceptions.NotFound()))
 app.errorhandler(PermissionError)(lambda e: app.handle_http_exception(werkzeug.exceptions.Forbidden()))
+
+if plus_as_space:
+	app.jinja_env.filters['urlencode'] = partial(urllib.parse.quote_plus, safe='/')
 
 @app.after_request
 def set_server_header(resp):
@@ -37,7 +56,7 @@ def set_server_header(resp):
 	return resp
 
 base_path = Path(os.environ['DIRSERVER_BASE_PATH']).resolve()
-exclude_hidden = os.environ.get('DIRSERVER_EXCLUDE_HIDDEN', '1').lower() in ('1', 'on', 'true')
+exclude_hidden = os.environ.get('DIRSERVER_EXCLUDE_HIDDEN', '1').lower() in ENABLED
 
 def ensure_beneath(base_path, path):
 	try:
@@ -183,7 +202,9 @@ def tar(path, dir_name):
 			yield from tar.add(path, arcname='' if path == base_path else dir_name, filter=TAR_FILTER)
 		yield from tar.footer()
 
-	return Response(gen(), mimetype='application/x-tar')
+	resp = Response(gen(), mimetype='application/x-tar')
+	resp.headers['Content-Disposition'] = utils.content_disposition('attachment', PurePosixPath(request.path).name)
+	return resp
 
 def opus_adder(tar, path, arcname=None):
 	if arcname is None:
@@ -232,8 +253,7 @@ def opus(path, filename):
 		bufsize=0,
 	)
 	resp = Response(encoder_proc.stdout, mimetype='audio/ogg')
-	opus_name = urllib.parse.quote(path.with_suffix('.opus').name.replace('"', r'\"'))
-	resp.headers['Content-Disposition'] = f"inline; filename*=utf-8''{opus_name}"
+	resp.headers['Content-Disposition'] = utils.content_disposition('inline', path.with_suffix('.opus').name)
 	return resp
 
 class PygmentsStyle(DefaultStyle):

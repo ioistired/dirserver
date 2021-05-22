@@ -10,10 +10,11 @@ Simple directory indexing web server suited to my needs.
 
 ## Configuration
 
-All configuration is done via environment variables. There are two:
+All configuration is done via environment variables. There are three:
 
 - `DIRSERVER_BASE_PATH`: the path to the root of all files to serve. Required.
 - `DIRSERVER_EXCLUDE_HIDDEN`: whether to hide files whose name starts with a dot. Optional, defaults to `1`.
+- `DIRSERVER_PLUS_AS_SPACE`: whether to use `+` instead of `%20` to represent space characters in URLs. Requires gunicorn. Defaults to `0`.
 
 ## License
 

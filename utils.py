@@ -1,3 +1,5 @@
+import urllib.parse
+
 suffixes = ('KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB')
 
 def natural_size(value, format='%.1f'):
@@ -29,3 +31,7 @@ def mime_type_for_audio_path(f):
 		return mime_type_for_audio_data(f.read(AUDIO_BYTES_NEEDED))
 
 path_is_opusenc_encodable = mime_type_for_audio_path
+
+def content_disposition(disposition, filename):
+	filename = urllib.parse.quote(filename).replace('"', r'\"')
+	return f"{disposition}; filename*=utf-8''{filename}"
