@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: BlueOak-1.0.0
+
 import urllib.parse
 
 suffixes = ('KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB')
