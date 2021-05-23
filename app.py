@@ -8,6 +8,7 @@ import subprocess
 import os
 import tempfile
 import urllib.parse
+import mimetypes
 from functools import partial
 from pathlib import Path, PurePosixPath
 
@@ -136,7 +137,10 @@ def breadcrumbs(path):
 def index_dir(path):
 	if not path.is_dir():
 		resp = make_response('')
-		resp.headers['X-Accel-Redirect'] = urllib.parse.urljoin('/._protected/', str(path.relative_to(base_path)))
+		internal_path = urllib.parse.urljoin('/._protected/', urllib.parse.quote(str(path.relative_to(base_path))))
+		resp.headers['X-Accel-Redirect'] = urllib.parse.urljoin('/._protected/', internal_path)
+		resp.headers['Content-Type'] = utils.content_type(str(path))
+		resp.headers['Content-Disposition'] = utils.content_disposition('inline', path.name)
 		return resp
 	elif not request.path.endswith('/'):
 		return redirect(request.path + '/')

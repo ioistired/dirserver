@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: BlueOak-1.0.0
 
+import mimetypes
 import urllib.parse
 
 suffixes = ('KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB')
@@ -37,3 +38,16 @@ path_is_opusenc_encodable = mime_type_for_audio_path
 def content_disposition(disposition, filename):
 	filename = urllib.parse.quote(filename).replace('"', r'\"')
 	return f"{disposition}; filename*=utf-8''{filename}"
+
+mimetypes.add_type('audio/flac', '.flac')
+mimetypes.add_type('audio/ogg', '.opus')
+for prog_lang_ext in 'txt py c h cpp sh bash go rs hh cc awk sql pl pm tcl tk'.split():
+	mimetypes.add_type('text/plain', '.' + prog_lang_ext)
+
+def content_type(path):
+	type, charset = mimetypes.guess_type(str(path))
+	if type is None:
+		return None
+	if charset is None:
+		return type
+	return f'{type}; charset={charset}'
