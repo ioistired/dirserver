@@ -41,7 +41,7 @@ def content_disposition(disposition, filename):
 
 mimetypes.add_type('audio/flac', '.flac')
 mimetypes.add_type('audio/ogg', '.opus')
-for prog_lang_ext in 'txt py c h cpp sh bash go rs hh cc awk sql pl pm tcl tk'.split():
+for prog_lang_ext in 'txt py c h cpp sh bash zsh fish go rs hh cc awk sql pl pm tcl tk ex exs erl'.split():
 	mimetypes.add_type('text/plain', '.' + prog_lang_ext)
 
 def content_type(path):
