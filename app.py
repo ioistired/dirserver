@@ -77,7 +77,7 @@ class SafePathConverter(PathConverter):
 		p = ensure_in_base_path(Path(value))
 		if not p.exists():
 			abort(404)
-		if exclude_hidden and any(part.startswith('.') for part in p.parts):
+		if p.isdir() and exclude_hidden and any(part.startswith('.') for part in p.parts):
 			abort(403)
 		return p
 
