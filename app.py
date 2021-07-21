@@ -9,6 +9,7 @@ import os
 import tempfile
 import urllib.parse
 import mimetypes
+from http import HTTPStatus
 from functools import partial
 from pathlib import Path, PurePosixPath
 
@@ -63,10 +64,10 @@ def ensure_beneath(base_path, path):
 	try:
 		resolved = (base_path / path).resolve()
 	except RuntimeError:  # symlink recursion
-		abort(400)
+		abort(HTTPStatus.BAD_REQUEST)
 
 	if base_path not in resolved.parents:
-		abort(403)
+		abort(HTTPStatus.FORBIDDEN)
 
 	return resolved
 
@@ -76,9 +77,9 @@ class SafePathConverter(PathConverter):
 	def to_python(self, value):
 		p = ensure_in_base_path(Path(value))
 		if not p.exists():
-			abort(404)
+			abort(HTTPStatus.NOT_FOUND)
 		if p.is_dir() and exclude_hidden and any(part.startswith('.') for part in p.parts):
-			abort(403)
+			abort(HTTPStatus.FORBIDDEN)
 		return p
 
 	def to_url(self, path):
@@ -277,7 +278,7 @@ class PygmentsStyle(DefaultStyle):
 def highlight(path, filename):
 	path /= filename
 	if not path.is_file():
-		abort(404)
+		abort(HTTPStatus.NOT_FOUND)
 
 	size = path.stat().st_size
 	if size > 10 * 1000 ** 2:
